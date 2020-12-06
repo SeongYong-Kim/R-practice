@@ -1,0 +1,322 @@
+---
+title: "품질공학 과제#4, code"
+author: "2016170815 김성용"
+output:
+  html_document:
+    df_print: paged
+  html_notebook: default
+  pdf_document: default
+---
+<br>
+<br>
+
+```{r}
+library(qcc)
+```
+
+## 6.9<br>
+## (a)
+```{r}
+x1 <- c(-30,0,-50,-10,20,0,0,70,0,10,40,30,30,30,10,0,20,10,50,50)
+x2 <- c(50,50,10,-10,-40,0,0,-30,0,20,0,20,-30,-10,-10,0,20,-20,-10,0)
+x3 <- c(-20,-60,20,30,50,40,20,30,20,30,20,30,0,50,50,30,30,50,40,0)
+x4 <- c(10,-20,30,-20,20,-40,-20,-10,-20,10,0,10,10,-10,40,-10,30,30,20,30)
+x5 <- c(30,30,20,50,10,20,-10,0,10,50,20,40,10,-30,0,0,-20,10,0,10)
+
+Data <- data.frame(x1, x2, x3, x4, x5)
+
+Data['R'] <- apply(Data, 1, max) - apply(Data, 1, min)
+```
+<br>
+<br>
+
+### R chart
+
+```{r}
+qcc(data = Data[1:5],
+    type = "R",
+    sizes = 5,
+    title = "R chart",
+    digits = 5,
+    plot = TRUE)
+```
+<br>
+<br>
+
+### X-bar chart
+
+```{r}
+qcc(data = Data[1:5],
+    type = "xbar",
+    sizes = 5,
+    title = "X-bar chart",
+    digits = 5,
+    plot = TRUE)
+```
+X-bar chart와 R chart의 모든 monitoring statistic이 control limits의 범위 안에 존재한다. 또한 monitoring statistic들이 특별한 경향성이나 주기성을 띄지 않으므로 process는 in statistical control 이라고 말할 수 있다.
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+
+## 6.66<br>
+
+## (a)
+
+```{r}
+Waiting_time <- c(2.49,3.39,7.41,2.88,0.76,1.32,7.05,1.37,6.17,5.12,1.34,0.5,4.35,1.67,1.63,4.88,15.19,0.67,4.14,2.16,1.14,2.66,4.67,1.54,5.06,3.40,1.39,1.11,6.92,36.99)
+
+Wait_df <- data.frame(Waiting_time)
+
+MR <- abs(Wait_df[2:30, ] - Wait_df[1:29, ])
+MR <- c(0, MR)
+
+
+Wait_df['MR'] <- MR
+```
+
+```{r}
+n = 1
+m = 30
+d2 = 1.128
+D4 = 3.267
+D3 = 0
+X_bar = mean(Wait_df[[1]])
+MR_bar = sum(Wait_df[[2]])/29
+```
+
+```{r}
+cat(' X_bar:',X_bar, '\n','MR_bar:',MR_bar)
+```
+<br>
+<br>
+
+### Individual chart
+
+```{r}
+UCL = X_bar + (3*MR_bar) / d2
+CL = X_bar
+LCL = X_bar - (3*MR_bar) / d2
+
+cat(' UCL:', UCL,'\n', 'CL:', CL,'\n', 'LCL:', LCL)
+```
+<br>
+<br>
+
+### MR chart
+
+```{r}
+UCL = D4*MR_bar
+CL = MR_bar
+LCL = D3*MR_bar
+
+cat(' UCL:', UCL,'\n', 'CL:', CL,'\n', 'LCL:', LCL)
+```
+<br>
+<br>
+
+## (b)<br>
+
+### MR chart
+
+```{r}
+x_next <- Wait_df[2:30, 1]
+x_prev <- Wait_df[1:29, 1]
+
+qcc(data = cbind(x_prev, x_next),
+    type = "R",
+    title = "MR chart",
+    digits = 5,
+    plot = TRUE)
+```
+<br>
+<br>
+
+### Individual chart
+
+```{r}
+qcc(data = Wait_df[1],
+    type = "xbar.one",
+    title = "Individual chart",
+    digits = 5,
+    plot = TRUE)
+```
+Individual chart, MR chart 모두에서 signal이 detecting 되고 있기 때문에 statistical control 상태가 아니다. 올바른 control chart를 구축하기 위해선 정상관측치 만으로 다시 관리 한계선을 결정하고 control chart를 그려보아야 한다.
+<br>
+<br>
+
+### 수정된 MR chart, iteration1
+
+```{r}
+Wait_df <- Wait_df[-30,]
+Wait_df <- Wait_df[-17,]
+
+x_next <- Wait_df[2:28, 1]
+x_prev <- Wait_df[1:27, 1]
+
+qcc(data = cbind(x_prev, x_next),
+    type = "R",
+    title = "MR chart",
+    digits = 5,
+    plot = TRUE)
+```
+<br>
+<br>
+
+### 수정된 Individual chart, iteration1
+
+```{r}
+qcc(data = Wait_df[1],
+    type = "xbar.one",
+    title = "Individual chart",
+    digits = 5,
+    plot = TRUE)
+```
+<br>
+<br>
+<br>
+
+## 6.68<br>
+
+## (b)
+
+```{r}
+Concentration <- c(60.4,69.5,78.4,72.8,78.2,78.7,56.9,78.4,79.6,100.8,99.6,64.9,75.5,70.4,68.1,99.9,59.3,60.0,74.7,75.8,76.6,68.4,83.1,61.1,54.9,69.1,67.5,69.2,87.2,73.0)
+
+Co_df <- data.frame(Concentration)
+
+MR <- abs(Co_df[2:30, ] - Co_df[1:29, ])
+MR <- c(0, MR)
+
+
+Co_df['MR'] <- MR
+```
+<br>
+<br>
+
+### MR chart
+
+```{r}
+x_next <- Co_df[2:30, 1]
+x_prev <- Co_df[1:29, 1]
+
+qcc(data = cbind(x_prev, x_next),
+    type = "R",
+    title = "MR chart",
+    digits = 5,
+    plot = TRUE)
+```
+<br>
+<br>
+
+### Individual chart
+
+```{r}
+qcc(data = Co_df[1],
+    type = "xbar.one",
+    title = "Individual chart",
+    digits = 5,
+    plot = TRUE)
+```
+16번째 data에서 signal이 발생했다. 현재 in statistical control 상태가 아니다. signal을 제거하고 다시 chart를 그린다.
+<br>
+<br>
+
+### MR chart, 1 iteration
+
+```{r}
+Co_df <- Co_df[-16,]
+
+x_next <- Co_df[2:29, 1]
+x_prev <- Co_df[1:28, 1]
+
+qcc(data = cbind(x_prev, x_next),
+    type = "R",
+    title = "MR chart",
+    digits = 5,
+    plot = TRUE)
+```
+<br>
+<br>
+
+### Individual chart, 1 iteration
+
+```{r}
+qcc(data = Wait_df[1],
+    type = "xbar.one",
+    title = "Individual chart",
+    digits = 5,
+    plot = TRUE)
+```
+11번째 data에서 signal이 발생했다. 이를 제거하고 다시 chart를 그린다.
+<br>
+<br>
+
+### MR chart, 2 iteration
+
+```{r}
+Co_df <- Co_df[-11,]
+
+x_next <- Co_df[2:28, 1]
+x_prev <- Co_df[1:27, 1]
+
+qcc(data = cbind(x_prev, x_next),
+    type = "R",
+    title = "MR chart",
+    digits = 5,
+    plot = TRUE)
+```
+<br>
+<br>
+
+### Individual chart, 2 iteration
+
+```{r}
+qcc(data = Wait_df[1],
+    type = "xbar.one",
+    title = "Individual chart",
+    digits = 5,
+    plot = TRUE)
+```
+10번째 data에서 signal이 발생했다. 이를 제거하고 다시 chart를 그린다.
+<br>
+<br>
+
+### MR chart, 3 iteration
+
+```{r}
+Co_df <- Co_df[-10,]
+
+x_next <- Co_df[2:27, 1]
+x_prev <- Co_df[1:26, 1]
+
+qcc(data = cbind(x_prev, x_next),
+    type = "R",
+    title = "MR chart",
+    digits = 5,
+    plot = TRUE)
+```
+<br>
+<br>
+
+### Individual chart, 3 iteration
+
+```{r}
+qcc(data = Wait_df[1],
+    type = "xbar.one",
+    title = "Individual chart",
+    digits = 5,
+    plot = TRUE)
+```
+Control chart가 올바르게 작성되었다.
